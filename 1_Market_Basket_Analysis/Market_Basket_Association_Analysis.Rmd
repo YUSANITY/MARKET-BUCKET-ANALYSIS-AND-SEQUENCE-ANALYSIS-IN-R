@@ -1,0 +1,217 @@
+---
+title: "R NOTEBOOK - **Market Basket / Association Analysis**"
+output: html_notebook
+---
+The team will be using aprior algorithm to perform Market Basket Analysis to help e-retailers uncovered association between items. It looks for combination of items that occur together frequenctly in transactions to allow retailer to identify relationship between the items the people buy.The dataset is obtained from Recsys Challenge 2015, Yoochoose e-Retailer transaction and web click datasets. We pre-processed the datasets in python using Pandas.
+```{r}
+# Set Working Directory
+setwd("~/SANDY/web_analytics/1_CA1/CA1_r11")
+
+# Load Required Libraries
+library(tidyverse)
+library(arules)
+library(arulesViz)
+library(knitr)
+library(gridExtra)
+```
+### **Read Required Data**
+We use the function read.transactions() from the arules package to create a transactions object.
+```{r}
+# Read the data
+trans <- read.transactions("train.csv", format="single", cols=c(1,3), sep=",", rm.duplicates=TRUE)
+```
+### The following is the **Transaction** Object.
+```{r}
+trans
+```
+### The following is the **Basic Summary** of the Transaction object.
+```{r}
+summary(trans)
+```
+### The following is the **Structure** of the Transaction object.
+```{r}
+glimpse(trans)
+```
+# **Data Analysis** (prelude)
+Before applying the Apriori algorithm on the data set, we are going to show some visualizations to learn more about the transactions using itemFrequencyPlot() to create an item Frequency Bar Plot to view the distribution of products. The itemFrequencyPlot() allows us to show the absolute or relative values. If absolute it will plot numeric frequencies of each item independently. If relative it will plot how many times these items have appeared as compared to others, as it’s shown in the following plot.
+
+The following is the **Top 15 Absolute Item** Frequency Plot.
+```{r}
+# Absolute Item Frequency Plot
+itemFrequencyPlot(trans, topN=15, type="absolute", col="wheat2",xlab="Item name", 
+                  ylab="Frequency (absolute)", main="Absolute Item Frequency Plot")
+```
+
+The following is the **Top 15 Relative Item** Frequency Plot.
+```{r}
+# Relative Item Frequency Plot
+itemFrequencyPlot(trans, topN=15, type="relative", col="lightcyan2", xlab="Item name", 
+                  ylab="Frequency (relative)", main="Relative Item Frequency Plot")
+```
+
+From the two plotted graphs, we can see that item **214853420** is the best selling product follow by **214853102** and **214853094**.
+
+# **Apriori Algorithm** - Choice of support and confidence
+
+The first step in order to create a set of association rules is to determine the optimal thresholds for support and confidence.
+We will try different values of support and confidence and see graphically how many rules are generated for each combination to determine the **Optimal Parameters** for the Aprior Algorithm.
+```{r}
+# Support and confidence values
+supportLevels <- c(0.1, 0.05, 0.01, 0.005)
+confidenceLevels <- c(0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1)
+
+# Empty integers 
+rules_sup10 <- integer(length=9)
+rules_sup5 <- integer(length=9)
+rules_sup1 <- integer(length=9)
+rules_sup0.5 <- integer(length=9)
+
+# Apriori algorithm with a support level of 10%
+for (i in 1:length(confidenceLevels)) {
+  
+  rules_sup10[i] <- length(apriori(trans, parameter=list(sup=supportLevels[1], 
+                                   conf=confidenceLevels[i], target="rules")))
+  
+}
+
+# Apriori algorithm with a support level of 5%
+for (i in 1:length(confidenceLevels)) {
+  
+  rules_sup5[i] <- length(apriori(trans, parameter=list(sup=supportLevels[2], 
+                                  conf=confidenceLevels[i], target="rules")))
+  
+}
+
+# Apriori algorithm with a support level of 1%
+for (i in 1:length(confidenceLevels)) {
+  
+  rules_sup1[i] <- length(apriori(trans, parameter=list(sup=supportLevels[3], 
+                                  conf=confidenceLevels[i], target="rules")))
+  
+}
+
+# Apriori algorithm with a support level of 0.5%
+for (i in 1:length(confidenceLevels)) {
+  
+  rules_sup0.5[i] <- length(apriori(trans, parameter=list(sup=supportLevels[4], 
+                                    conf=confidenceLevels[i], target="rules")))
+  
+}
+```
+In the following graphs we can see the number of rules generated with a support level of **10%, 5%, 1% and 0.5%**.
+```{r}
+# Data frame
+num_rules <- data.frame(rules_sup10, rules_sup5, rules_sup1, rules_sup0.5, confidenceLevels)
+# Number of rules found with a support level of 10%, 5%, 1% and 0.5%
+ggplot(data=num_rules, aes(x=confidenceLevels)) +
+  
+  # Plot line and points (support level of 10%)
+  geom_line(aes(y=rules_sup10, colour="Support level of 10%")) + 
+  geom_point(aes(y=rules_sup10, colour="Support level of 10%")) +
+  
+  # Plot line and points (support level of 5%)
+  geom_line(aes(y=rules_sup5, colour="Support level of 5%")) +
+  geom_point(aes(y=rules_sup5, colour="Support level of 5%")) +
+  
+  # Plot line and points (support level of 1%)
+  geom_line(aes(y=rules_sup1, colour="Support level of 1%")) + 
+  geom_point(aes(y=rules_sup1, colour="Support level of 1%")) +
+  
+  # Plot line and points (support level of 0.5%)
+  geom_line(aes(y=rules_sup0.5, colour="Support level of 0.5%")) +
+  geom_point(aes(y=rules_sup0.5, colour="Support level of 0.5%")) +
+  
+  # Labs and theme
+  labs(x="Confidence levels", y="Number of rules found", 
+       title="Apriori algorithm with different support levels") +
+  theme_bw() +
+  theme(legend.title=element_blank())
+```
+The following are the analysis of the results:-
+**Support level of 10%** – We are unable to generate any rules of satifactation with our preset parameter ranges.
+**Support level of 5%** – We are unable to generate any rules of satifactation with our preset parameter ranges.
+**Support level of 1%** – We are unable to generate any rules of satifactation with our preset parameter ranges.
+**Support level of 0.5%** – We are can get some rules of which 7 have a confidence of at least 50%.
+
+Therefore will will be using the the following parameter to rule the Apriori Algorithm :- 1) **Support:** 0.5% 2) **Confidence:** 50%
+```{r}
+rules_sup0.5_conf50 <- apriori(trans, parameter=list(sup=supportLevels[4], conf=confidenceLevels[5], target="rules"))
+```
+The following is the **Association Rules** generated.
+```{r}
+inspect(rules_sup0.5_conf50)
+```
+## **Visualize Association Rules**
+We are going to use the arulesViz package to create the visualizations.
+The following is the **Scatter Plot** with different measures of interestingness on the axes (lift and support) and a third measure (confidence) represented by the color of the points.
+```{r}
+plot(rules_sup0.5_conf50, measure=c("support","lift"), shading="confidence")
+```
+The following visualization represents the rules as a **Graph** with **items as Labeled Vertices**, and rules represented as vertices connected to items using arrows.
+```{r}
+plot(rules_sup0.5_conf50, method="graph")
+```
+The following visualization represents the rules as a **Matrix** graph.
+```{r}
+plot(rules_sup0.5_conf50, method="matrix")
+```
+## **Testing Association Rules**
+
+We first defined the working Functions and load the Test dataset. The following is the First 5 Rows of the dataset.
+```{r}
+#remove duplicate items from a basket (itemstrg)
+uniqueitems <- function(itemstrg) {
+  unique(as.list(strsplit(gsub(" ","",itemstrg),","))[[1]])
+}
+# execute ruleset using item as rule antecedent (handles single item antecedents only)
+makepreds <- function(item, rulesDF) {
+  antecedent = paste("{",item,"} =>",sep="") 
+  firingrules = rulesDF[grep(antecedent, rulesDF$rules,fixed=TRUE),1]
+  gsub(" ","",toString(sub("\\}","",sub(".*=> \\{","",firingrules))))
+}
+# count how many predictions are in the basket of items already seen by that user 
+# Caution : refers to "baskets" as a global
+checkpreds <- function(preds, baskID) {
+  plist = preds[[1]]
+  blist = baskets[baskets$basketID == baskID,"items"][[1]]
+  cnt = 0 
+  for (p in plist) {
+    if (p %in% blist) cnt = cnt+1
+  }
+  cnt
+}
+# count all predictions made
+countpreds <- function(predlist) {
+  len = length(predlist)
+  if (len > 0 && (predlist[[1]] == "")) 0 # avoid counting an empty list
+  else len
+}
+# Load the test data
+testegs = read.csv(file="test.csv")
+testegs = testegs[,c(1,3)]
+colnames(testegs) <- c("basketID","items")  # set standard names, in case they are different in the data file
+# Display top 5 rows
+testegs[1:5,]
+```
+We **Execute** the generated rules against the test data. Next we extract Unique Predictions for each test user and extract Unique Items for each test user. Lastly we count the unique prediction made are correct and total number of unique prediction to caculate the Precision.
+```{r}
+#execute rules against test data
+rulesDF = as(rules_sup0.5_conf50,"data.frame")
+testegs$preds = apply(testegs,1,function(X) makepreds(X["items"], rulesDF))
+
+# extract unique predictions for each test user
+userpreds = as.data.frame(aggregate(preds ~ basketID, data = testegs, paste, collapse=","))
+userpreds$preds = apply(userpreds,1,function(X) uniqueitems(X["preds"]))
+
+# extract unique items for each test user
+baskets = as.data.frame(aggregate(items ~ basketID, data = testegs, paste, collapse=","))
+baskets$items = apply(baskets,1,function(X) uniqueitems(X["items"]))
+
+#count how many unique predictions made are correct, i.e. have previously been bought (or rated highly) by the user
+correctpreds = sum(apply(userpreds,1,function(X) checkpreds(X["preds"],X["basketID"])))
+
+# count total number of unique predictions made
+totalpreds = sum(apply(userpreds,1,function(X) countpreds(X["preds"][[1]]))) 
+precision = correctpreds*100/totalpreds
+cat("precision=", precision, "corr=",correctpreds,"total=",totalpreds)
+```
