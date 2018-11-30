@@ -1,4 +1,7 @@
 # MARKET BUCKET ANALYSIS AND SEQUENCE ANALYSIS
+### METHODOLOGY
+The code is writen in R. The html files in the folders is the R NOTEBOOK of the implementation.
+
 ### Dataset
 The dataset was provided by an e-commence website (ie. YOOCHOOSE) for the RecSys 2015 Challenge. The dataset consists of 
 a collection of sequences of click events and sessions. There are also buying events for some of the sessions. Hence, based 
