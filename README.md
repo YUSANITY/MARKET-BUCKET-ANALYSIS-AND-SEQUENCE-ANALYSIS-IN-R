@@ -1,4 +1,4 @@
-# MARKET BUCKET ANALYSIS AND SEQUENCE ANALYSIS
+# MARKET BUCKET ANALYSIS AND SEQUENCE ANALYSIS in R
 ### METHODOLOGY
 The code is writen in R. The html files in the folders is the R NOTEBOOK of the implementation.
 
