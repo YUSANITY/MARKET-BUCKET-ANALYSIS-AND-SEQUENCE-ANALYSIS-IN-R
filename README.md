@@ -1,4 +1,4 @@
-# MARKET-BUCKET-ANALYSIS-AND-SEQUENCE-ANALYSIS
+# MARKET BUCKET ANALYSIS AND SEQUENCE ANALYSIS
 ### Dataset
 The dataset was provided by an e-commence website (ie. YOOCHOOSE) for the RecSys 2015 Challenge. The dataset consists of 
 a collection of sequences of click events and sessions. There are also buying events for some of the sessions. Hence, based 
